@@ -12,7 +12,7 @@ else
 obj-$(CONFIG_SPECTRA_CAMERA) += camera/
 endif
 ifneq ($(CONFIG_MSMB_CAMERA_LEGACY),y)
-obj-$(CONFIG_MSMB_CAMERA) += camera_v2/
+obj-$(CONFIG_MSMB_CAMERA_ENABLE) += camera_v2/
 else
 obj-$(CONFIG_MSMB_CAMERA) += camera_v2-legacy/
 endif
