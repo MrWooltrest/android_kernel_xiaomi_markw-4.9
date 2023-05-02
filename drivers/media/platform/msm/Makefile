@@ -16,7 +16,7 @@ obj-$(CONFIG_MSMB_CAMERA) += camera_v2-legacy/
 else ifeq ($(CONFIG_MSMB_CAMERA_LEGACY_M),y)
 obj-$(CONFIG_MSMB_CAMERA) += camera_v2-legacy-m/
 else
-obj-$(CONFIG_MSMB_CAMERA) += camera_v2/
+obj-$(CONFIG_MSMB_CAMERA_ENABLE) += camera_v2/
 endif
 obj-y += broadcast/
 obj-$(CONFIG_DVB_MPQ) += dvb/
