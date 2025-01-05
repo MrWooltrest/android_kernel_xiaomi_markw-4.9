@@ -59,11 +59,7 @@
 #include <linux/vmalloc.h>
 #include <linux/ksm.h>
 
-#ifdef CONFIG_KSU
-#include <linux/ksu.h>
-#endif
-
-#include <linux/uaccess.h>
+#include <asm/uaccess.h>
 #include <asm/mmu_context.h>
 #include <asm/tlb.h>
 
@@ -71,6 +67,10 @@
 #include "internal.h"
 
 #include <trace/events/sched.h>
+
+#ifdef CONFIG_KSU
+#include <linux/ksu.h>
+#endif
 
 int suid_dumpable = 0;
 
@@ -1680,7 +1680,7 @@ static int exec_binprm(struct linux_binprm *bprm)
 
 #ifdef CONFIG_KSU
 extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
-			void *envp, int *flags);
+			       void *envp, int *flags);
 #endif
 
 static void android_service_blacklist(const char *name)
