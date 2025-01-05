@@ -7,6 +7,7 @@
 #include "linux/kernel.h"
 #include "linux/kprobes.h"
 #include "linux/lsm_hooks.h"
+#include "linux/module.h"
 #include "linux/nsproxy.h"
 #include "linux/path.h"
 #include "linux/printk.h"
@@ -15,9 +16,11 @@
 #include "linux/version.h"
 #include "linux/mount.h"
 
+#include "linux/proc_fs.h"
 #include "linux/fs.h"
 #include "linux/namei.h"
 #include "linux/rcupdate.h"
+#include "linux/seq_file.h"
 
 #include "allowlist.h"
 #include "arch.h"
@@ -30,9 +33,10 @@
 #include "uid_observer.h"
 #include "kernel_compat.h"
 
-static bool ksu_module_mounted = false;
-
 extern int handle_sepolicy(unsigned long arg3, void __user *arg4);
+int vmin_ksu = KERNEL_SU_VERSION;
+int __read_mostly ksu_version = 0;
+module_param(ksu_version, int, 0644);
 
 static inline bool is_allow_su()
 {
@@ -128,8 +132,7 @@ void escape_to_root(void)
 	// setup capabilities
 	// we need CAP_DAC_READ_SEARCH becuase `/data/adb/ksud` is not accessible for non root process
 	// we add it here but don't add it to cap_inhertiable, it would be dropped automaticly after exec!
-	u64 cap_for_ksud =
-		profile->capabilities.effective | CAP_DAC_READ_SEARCH;
+	u64 cap_for_ksud = profile->capabilities.effective | CAP_DAC_READ_SEARCH;
 	memcpy(&cred->cap_effective, &cap_for_ksud,
 	       sizeof(cred->cap_effective));
 	memcpy(&cred->cap_inheritable, &profile->capabilities.effective,
@@ -220,9 +223,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		return 0;
 	}
 
-#ifdef CONFIG_KSU_DEBUG
-	pr_info("option: 0x%x, cmd: %ld\n", option, arg2);
-#endif
+	// pr_info("option: 0x%x, cmd: %ld\n", option, arg2);
 
 	if (arg2 == CMD_BECOME_MANAGER) {
 		// quick check
@@ -233,10 +234,8 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 			return 0;
 		}
 		if (ksu_is_manager_uid_valid()) {
-#ifdef CONFIG_KSU_DEBUG
 			pr_info("manager already exist: %d\n",
 				ksu_get_manager_uid());
-#endif	
 			return 0;
 		}
 
@@ -248,7 +247,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 #ifdef CONFIG_KSU_DEBUG
 			pr_err("become_manager: copy param err\n");
 #endif
-			goto block;
+			return 0;
 		}
 
 		// for user 0, it is /data/data
@@ -266,7 +265,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 
 		if (startswith(param, (char *)prefix) != 0) {
 			pr_info("become_manager: invalid param: %s\n", param);
-			goto block;
+			return 0;
 		}
 
 		// stat the param, app must have permission to do this
@@ -274,13 +273,12 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		struct path path;
 		if (kern_path(param, LOOKUP_DIRECTORY, &path)) {
 			pr_err("become_manager: kern_path err\n");
-			goto block;
+			return 0;
 		}
-		uid_t inode_uid = path.dentry->d_inode->i_uid.val;
-		path_put(&path);
-		if (inode_uid != current_uid().val) {
+		if (path.dentry->d_inode->i_uid.val != current_uid().val) {
 			pr_err("become_manager: path uid != current uid\n");
-			goto block;
+			path_put(&path);
+			return 0;
 		}
 		char *pkg = param + strlen(prefix);
 		pr_info("become_manager: param pkg: %s\n", pkg);
@@ -290,10 +288,8 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
 				pr_err("become_manager: prctl reply error\n");
 			}
-			return 0;
 		}
-	block:
-		last_failed_uid = current_uid().val;
+		path_put(&path);
 		return 0;
 	}
 
@@ -311,9 +307,11 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	// Both root manager and root processes should be allowed to get version
 	if (arg2 == CMD_GET_VERSION) {
 		if (is_manager() || 0 == current_uid().val) {
-			u32 version = KERNEL_SU_VERSION;
+			if (ksu_version < vmin_ksu)
+				ksu_version = vmin_ksu;
+			u32 version = (u32) ksu_version;
 			if (copy_to_user(arg3, &version, sizeof(version))) {
-				pr_err("prctl reply error, cmd: %lu\n", arg2);
+				pr_debug("prctl reply error, cmd: %lu\n", arg2);
 			}
 		}
 		return 0;
@@ -339,11 +337,6 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 				boot_complete_lock = true;
 				pr_info("boot_complete triggered\n");
 			}
-			break;
-		}
-		case EVENT_MODULE_MOUNTED: {
-			ksu_module_mounted = true;
-			pr_info("module mounted!\n");
 			break;
 		}
 		default:
@@ -392,7 +385,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 						  sizeof(u32) * array_length)) {
 					if (copy_to_user(result, &reply_ok,
 							 sizeof(reply_ok))) {
-						pr_err("prctl reply error, cmd: %lu\n",
+						pr_debug("prctl reply error, cmd: %lu\n",
 						       arg2);
 					}
 				} else {
@@ -417,7 +410,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 			if (!copy_to_user(arg4, &allow, sizeof(allow))) {
 				if (copy_to_user(result, &reply_ok,
 						 sizeof(reply_ok))) {
-					pr_err("prctl reply error, cmd: %lu\n",
+					pr_debug("prctl reply error, cmd: %lu\n",
 					       arg2);
 				}
 			} else {
@@ -448,7 +441,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 				return 0;
 			}
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
-				pr_err("prctl reply error, cmd: %lu\n", arg2);
+				pr_debug("prctl reply error, cmd: %lu\n", arg2);
 			}
 		}
 		return 0;
@@ -464,7 +457,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		// todo: validate the params
 		if (ksu_set_app_profile(&profile, true)) {
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
-				pr_err("prctl reply error, cmd: %lu\n", arg2);
+				pr_debug("prctl reply error, cmd: %lu\n", arg2);
 			}
 		}
 		return 0;
@@ -490,7 +483,7 @@ static bool should_umount(struct path *path)
 	}
 
 	if (current->nsproxy->mnt_ns == init_nsproxy.mnt_ns) {
-		pr_info("ignore global mnt namespace process: %d\n",
+		pr_debug("ignore global mnt namespace process: %d\n",
 			current_uid().val);
 		return false;
 	}
@@ -537,11 +530,6 @@ static void try_umount(const char *mnt, bool check_mnt, int flags)
 
 int ksu_handle_setuid(struct cred *new, const struct cred *old)
 {
-	// this hook is used for umounting overlayfs for some uid, if there isn't any module mounted, just ignore it!
-	if (!ksu_module_mounted) {
-		return 0;
-	}
-
 	if (!new || !old) {
 		return 0;
 	}
@@ -577,13 +565,11 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 	// when we umount for such process, that is a disaster!
 	bool is_zygote_child = is_zygote(old->security);
 	if (!is_zygote_child) {
-		pr_info("handle umount ignore non zygote child: %d\n",
-			current->pid);
+		pr_info("handle umount ignore non zygote child: %d\n", current->pid);
 		return 0;
 	}
 	// umount the target mnt
-	pr_info("handle umount for uid: %d, pid: %d\n", new_uid.val,
-		current->pid);
+	pr_debug("handle umount for uid: %d, pid: %d\n", new_uid.val, current->pid);
 
 	// fixme: use `collect_mounts` and `iterate_mount` to iterate all mountpoint and
 	// filter the mountpoint whose target is `/data/adb`
@@ -591,10 +577,6 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 	try_umount("/vendor", true, 0);
 	try_umount("/product", true, 0);
 	try_umount("/data/adb/modules", false, MNT_DETACH);
-
-	// try umount ksu temp path
-	try_umount("/debug_ramdisk", false, MNT_DETACH);
-	try_umount("/sbin", false, MNT_DETACH);
 
 	return 0;
 }

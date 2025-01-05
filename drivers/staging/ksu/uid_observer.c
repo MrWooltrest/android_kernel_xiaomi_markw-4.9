@@ -56,7 +56,7 @@ static void do_update_uid(struct work_struct *work)
 	char chr = 0;
 	loff_t pos = 0;
 	loff_t line_start = 0;
-	char buf[KSU_MAX_PACKAGE_NAME];
+	char buf[128];
 	for (;;) {
 		ssize_t count =
 			ksu_kernel_read_compat(fp, &chr, sizeof(chr), &pos);
@@ -69,7 +69,7 @@ static void do_update_uid(struct work_struct *work)
 					       &line_start);
 
 		struct uid_data *data =
-			kzalloc(sizeof(struct uid_data), GFP_ATOMIC);
+			kmalloc(sizeof(struct uid_data), GFP_ATOMIC);
 		if (!data) {
 			goto out;
 		}
@@ -80,13 +80,13 @@ static void do_update_uid(struct work_struct *work)
 		char *uid = strsep(&tmp, delim);
 		if (!uid || !package) {
 			pr_err("update_uid: package or uid is NULL!\n");
-			break;
+			continue;
 		}
 
 		u32 res;
 		if (kstrtou32(uid, 10, &res)) {
 			pr_err("update_uid: uid parse err\n");
-			break;
+			continue;
 		}
 		data->uid = res;
 		strncpy(data->package, package, KSU_MAX_PACKAGE_NAME);

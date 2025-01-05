@@ -57,8 +57,7 @@ bool become_manager(char *pkg)
 		}
 		cwd = d_path(&files_path, buf, PATH_MAX);
 		if (startswith(cwd, "/data/app/") != 0 ||
-		    endswith(cwd, "==/base.apk") != 0) {
-			// AOSP generate ramdom base64 with 16bit, without NO_PADDING, so it must have two "="
+		    endswith(cwd, "/base.apk") != 0) {
 			continue;
 		}
 		// we have found the apk!
