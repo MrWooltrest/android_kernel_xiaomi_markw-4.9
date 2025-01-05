@@ -20,7 +20,7 @@
 #include <media/rc-core.h>
 #include "rc-core-priv.h"
 
-#if defined(CONFIG_MACH_XIAOMI_С6) || defined(CONFIG_MACH_XIAOMI_MARKW)
+#ifdef CONFIG_MACH_XIAOMI_C6
 #define LIRCBUF_SIZE 1024
 #else
 #define LIRCBUF_SIZE 256
