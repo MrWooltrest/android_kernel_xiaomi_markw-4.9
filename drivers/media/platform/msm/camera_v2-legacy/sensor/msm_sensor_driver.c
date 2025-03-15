@@ -86,7 +86,7 @@ static int32_t msm_sensor_driver_create_i2c_v4l_subdev
 	struct i2c_client *client = s_ctrl->sensor_i2c_client->client;
 
 	CDBG("%s %s I2c probe succeeded\n", __func__, client->name);
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	if (0 == s_ctrl->bypass_video_node_creation) {
 #endif
 		rc = camera_init_v4l2(&client->dev, &session_id);
@@ -94,7 +94,7 @@ static int32_t msm_sensor_driver_create_i2c_v4l_subdev
 			pr_err("failed: camera_init_i2c_v4l2 rc %d", rc);
 			return rc;
 		}
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	}
 #endif
 
@@ -133,7 +133,7 @@ static int32_t msm_sensor_driver_create_v4l_subdev
 	int32_t rc = 0;
 	uint32_t session_id = 0;
 
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	if (0 == s_ctrl->bypass_video_node_creation) {
 #endif
 		rc = camera_init_v4l2(&s_ctrl->pdev->dev, &session_id);
@@ -141,7 +141,7 @@ static int32_t msm_sensor_driver_create_v4l_subdev
 			pr_err("failed: camera_init_v4l2 rc %d", rc);
 			return rc;
 		}
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	}
 #endif
 
@@ -889,7 +889,7 @@ int32_t msm_sensor_driver_probe(void *setting,
 			slave_info32->sensor_init_params;
 		slave_info->output_format =
 			slave_info32->output_format;
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 		slave_info->bypass_video_node_creation =
 			!!slave_info32->bypass_video_node_creation;
 #endif
@@ -935,7 +935,7 @@ int32_t msm_sensor_driver_probe(void *setting,
 		slave_info->sensor_init_params.position);
 	CDBG("mount %d",
 		slave_info->sensor_init_params.sensor_mount_angle);
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	CDBG("bypass video node creation %d",
 		slave_info->bypass_video_node_creation);
 #endif
@@ -1117,7 +1117,7 @@ CSID_TG:
 
 	pr_err("%s probe succeeded", slave_info->sensor_name);
 
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	s_ctrl->bypass_video_node_creation =
 		slave_info->bypass_video_node_creation;
 #endif
