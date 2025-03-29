@@ -684,6 +684,7 @@ static void msm_sensor_fill_sensor_info(struct msm_sensor_ctrl_t *s_ctrl,
 	strlcpy(entity_name, s_ctrl->msm_sd.sd.entity.name, MAX_SENSOR_NAME);
 }
 
+#ifdef CONFIG_MACH_XIAOMI_C6
 extern int main_module_id;
 extern int sub_module_id;
 static const char *module_info[] = {
@@ -804,6 +805,7 @@ static uint16_t fusion_read_id_ov13855(struct msm_sensor_ctrl_t *s_ctrl)
 
 	return 0;
 }
+#endif
 
 /* static function definition */
 int32_t msm_sensor_driver_probe(void *setting,
@@ -1103,6 +1105,7 @@ CSID_TG:
 		goto free_camera_info;
 	}
 
+	#ifdef CONFIG_MACH_XIAOMI_C6
 	if (!strcmp(slave_info->sensor_name, "ov13855_sunny")) {
 		fusion_read_id_ov13855(s_ctrl);
 	} else if (!strcmp(slave_info->sensor_name, "s5k3l8_ofilm")) {
@@ -1114,6 +1117,7 @@ CSID_TG:
 	} else {
 		printk("read fusion id fail\n");
 	}
+	#endif
 
 	pr_err("%s probe succeeded", slave_info->sensor_name);
 
