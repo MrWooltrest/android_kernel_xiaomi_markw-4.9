@@ -32,7 +32,11 @@
 #define CYCLES_PER_MICRO_SEC_DEFAULT 4915
 #define CCI_MAX_DELAY 1000000
 
+#ifdef CONFIG_MACH_XIAOMI_C6
+#define CCI_TIMEOUT msecs_to_jiffies(800)
+#else
 #define CCI_TIMEOUT msecs_to_jiffies(500)
+#endif
 
 /* TODO move this somewhere else */
 #define MSM_CCI_DRV_NAME "msm_cci"
@@ -1430,7 +1434,7 @@ static int32_t msm_cci_init(struct v4l2_subdev *sd,
 		pr_err("%s: irq enable failed\n", __func__);
 	cci_dev->hw_version = msm_camera_io_r_mb(cci_dev->base +
 		CCI_HW_VERSION_ADDR);
-	CDBG("%s:%d: hw_version = 0x%x\n", __func__, __LINE__,
+	pr_info("%s:%d: hw_version = 0x%x\n", __func__, __LINE__,
 		cci_dev->hw_version);
 	cci_dev->payload_size =
 			MSM_CCI_WRITE_DATA_PAYLOAD_SIZE_10;
