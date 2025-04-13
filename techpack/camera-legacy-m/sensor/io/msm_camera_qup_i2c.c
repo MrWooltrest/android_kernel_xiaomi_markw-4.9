@@ -175,7 +175,11 @@ int32_t legacy_m_msm_camera_qup_i2c_write(struct msm_camera_i2c_client *client,
 	enum msm_camera_i2c_data_type data_type)
 {
 	int32_t rc = -EFAULT;
+	#ifdef CONFIG_MACH_XIAOMI_MARKW
+	unsigned char *buf = NULL;
+	#else
 	unsigned char buf[client->addr_type+data_type];
+	#endif
 	uint8_t len = 0;
 
 	if ((client->addr_type != MSM_CAMERA_I2C_BYTE_ADDR
@@ -183,6 +187,19 @@ int32_t legacy_m_msm_camera_qup_i2c_write(struct msm_camera_i2c_client *client,
 		|| (data_type != MSM_CAMERA_I2C_BYTE_DATA
 		&& data_type != MSM_CAMERA_I2C_WORD_DATA))
 		return rc;
+
+	#ifdef CONFIG_MACH_XIAOMI_MARKW
+	if (client->addr_type > UINT_MAX - data_type) {
+		pr_err("%s: integer overflow prevented\n", __func__);
+		return rc;
+	}
+
+	buf = kzalloc(client->addr_type+data_type, GFP_KERNEL);
+	if (!buf) {
+		pr_err("%s:%d no memory\n", __func__, __LINE__);
+		return -ENOMEM;
+	}
+	#else
 
 	S_I2C_DBG("%s reg addr = 0x%x data type: %d\n",
 			  __func__, addr, data_type);
