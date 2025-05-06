@@ -13,7 +13,7 @@
 
 &int_codec {
 	qcom,msm-mbhc-hphl-swh = <1>;
-        qcom,spk_ext_pa = <&tlmm 96 0>;
+    qcom,spk_ext_pa = <&tlmm 96 0>;
 	qcom,audio-routing =
 		"RX_BIAS", "MCLK",
 		"SPK_RX_BIAS", "MCLK",
