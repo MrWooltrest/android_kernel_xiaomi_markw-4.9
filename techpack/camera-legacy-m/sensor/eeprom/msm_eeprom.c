@@ -654,12 +654,17 @@ static int msm_eeprom_config(struct msm_eeprom_ctrl_t *e_ctrl,
 		rc = msm_eeprom_get_cmm_data(e_ctrl, cdata);
 		break;
 	case CFG_EEPROM_INIT:
+		#ifndef CONFIG_MACH_XIAOMI_MARKW
 		if (e_ctrl->userspace_probe == 0) {
 			pr_err("%s:%d Eeprom already probed at kernel boot",
 				__func__, __LINE__);
 			rc = 0;
 			break;
 		}
+		#endif
+		#ifdef CONFIG_MACH_XIAOMI_MARKW
+		pr_err("%s:%d \n", __func__, __LINE__)
+		#endif
 		if (e_ctrl->cal_data.num_data == 0) {
 			rc = eeprom_init_config(e_ctrl, argp);
 			if (rc < 0) {

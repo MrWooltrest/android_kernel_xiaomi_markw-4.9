@@ -32,7 +32,11 @@
 #define CYCLES_PER_MICRO_SEC_DEFAULT 4915
 #define CCI_MAX_DELAY 1000000
 
+#ifdef CONFIG_MACH_XIAOMI_MARKW
 #define CCI_TIMEOUT msecs_to_jiffies(1000)
+#else
+#define CCI_TIMEOUT msecs_to_jiffies(500)
+#endif
 
 /* TODO move this somewhere else */
 #define MSM_CCI_DRV_NAME "msm_cci"
@@ -63,6 +67,7 @@ static void msm_cci_dump_registers(struct cci_device *cci_dev,
 {
 	uint32_t read_val = 0;
 	uint32_t i = 0;
+	uint32_t retry = 0;
 	uint32_t reg_offset = 0;
 
 	/* CCI Top Registers */
@@ -906,8 +911,20 @@ static int32_t msm_cci_i2c_read(struct v4l2_subdev *sd,
 		rc = 0;
 	}
 
+	#ifdef CONFIG_MACH_XIAOMI_MARKW
+	for (retry = 0; retry < 3; retry++) {
+		read_words = msm_camera_io_r_mb(cci_dev->base +
+		CCI_I2C_M0_READ_BUF_LEVEL_ADDR + master * 0x100);
+		pr_err("test s5k5e8 add %s:%d read_words = %d, exp words = %d\n", __func__,
+			__LINE__, read_words, exp_words);
+
+		if (read_words > 0)
+			break;
+	}
+	#else
 	read_words = legacy_m_msm_camera_io_r_mb(cci_dev->base +
 		CCI_I2C_M0_READ_BUF_LEVEL_ADDR + master * 0x100);
+	#endif
 	exp_words = ((read_cfg->num_byte / 4) + 1);
 	if (read_words != exp_words) {
 		pr_err("%s:%d read_words = %d, exp words = %d\n", __func__,
