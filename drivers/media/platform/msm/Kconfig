@@ -51,6 +51,15 @@ config MSMB_CAMERA_LEGACY
     help
       Say Y here to use legacy QTI msm camera and video capture 2.0.
 
+config MSMB_CAMERA_LEGACY_M
+    bool "Qualcomm MSM camera and video capture 2.0 support (Legacy Marshmallow)"
+    depends on MSMB_CAMERA
+    help
+      Say Y here to enable selecting the video adapters for
+      Qualcomm msm camera and video capture 2.0, enabling this
+      adds support for the camera driver stack including sensor, isp
+      and postprocessing drivers. (Legacy Marshmallow)
+
 config MSMB_CAMERA_DEBUG
     bool "QTI MSM camera 2.0 debugging with printk"
     depends on MSMB_CAMERA
