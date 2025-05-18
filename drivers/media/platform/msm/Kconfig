@@ -54,12 +54,15 @@ config MSMB_CAMERA_DEBUG
 
 
 if MSMB_CAMERA
-if !MSMB_CAMERA_LEGACY
+if !MSMB_CAMERA_LEGACY || !MSMB_CAMERA_LEGACY_M
 source "drivers/media/platform/msm/camera_v2/Kconfig"
-endif # !MSMB_CAMERA_LEGACY
+endif # !MSMB_CAMERA_LEGACY || !MSMB_CAMERA_LEGACY_M
 if MSMB_CAMERA_LEGACY
 source "drivers/media/platform/msm/camera_v2-legacy/Kconfig"
 endif # MSMB_CAMERA_LEGACY
+if MSMB_CAMERA_LEGACY_M
+source "drivers/media/platform/msm/camera_v2-legacy-m/Kconfig"
+endif # MSMB_CAMERA_LEGACY_M
 endif # MSMB_CAMERA
 
 menuconfig SPECTRA2_CAMERA
