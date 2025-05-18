@@ -1116,7 +1116,7 @@ void msm_isp_start_avtimer(void)
 	}
 }
 
-void m_msm_isp_stop_avtimer(void)
+void msm_isp_stop_avtimer(void)
 {
 	if (avtimer_func.fptr_avtimer_enable) {
 		avtimer_func.fptr_avtimer_enable(0);
