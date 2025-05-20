@@ -1093,7 +1093,7 @@ void msm_isp_calculate_bandwidth(
 
 #ifdef CONFIG_MSM_AVTIMER
 /**
- * legacy_m_msm_isp_set_avtimer_fptr() - Set avtimer function pointer
+ * msm_isp_set_avtimer_fptr() - Set avtimer function pointer
  * @avtimer: struct of type avtimer_fptr_t to hold function pointer.
  *
  * Initialize the function pointers sent by the avtimer driver
