@@ -62,7 +62,7 @@ static void camera_pack_event(struct file *filep, int evt_id,
 	event_data->arg_value = value;
 }
 
-static int msm_camera_check_event_status(struct v4l2_event *event)
+static int camera_check_event_status(struct v4l2_event *event)
 {
 	struct msm_v4l2_event_data *event_data =
 		(struct msm_v4l2_event_data *)&event->u.data[0];
