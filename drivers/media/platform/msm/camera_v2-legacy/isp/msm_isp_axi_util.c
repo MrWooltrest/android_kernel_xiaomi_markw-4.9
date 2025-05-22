@@ -2385,7 +2385,7 @@ int msm_isp_update_stream_bandwidth(struct vfe_device *vfe_dev,
 #endif
 {
 	int i, rc = 0;
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 	int frame_src, ms_type;
 #endif
 	struct msm_vfe_axi_stream *stream_info;
@@ -2398,7 +2398,7 @@ int msm_isp_update_stream_bandwidth(struct vfe_device *vfe_dev,
 
 	for (i = 0; i < VFE_AXI_SRC_MAX; i++) {
 		stream_info = &axi_data->stream_info[i];
-#if !defined(CONFIG_MACH_XIAOMI_C6) || !defined(CONFIG_MACH_XIAOMI_MARKW)
+#if !defined(CONFIG_MACH_XIAOMI_C6) && !defined(CONFIG_MACH_XIAOMI_MARKW)
 		frame_src = SRC_TO_INTF(stream_info->stream_src);
 		ms_type = vfe_dev->axi_data.src_info[frame_src].
 			dual_hw_ms_info.dual_hw_ms_type;
