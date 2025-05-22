@@ -27,9 +27,15 @@ DEFINE_MSM_MUTEX(msm_actuator_mutex);
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
 #endif
 
+#ifdef CONFIG_MACH_XIAOMI_MARKW
+#define PARK_LENS_LONG_STEP 7
+#define PARK_LENS_MID_STEP 5
+#define PARK_LENS_SMALL_STEP 3
+#else
 #define PARK_LENS_LONG_STEP 3
 #define PARK_LENS_MID_STEP 2
 #define PARK_LENS_SMALL_STEP 1
+#endif
 #define MAX_QVALUE 4096
 #ifdef CONFIG_MACH_XIAOMI_C6
 #define PARK_LENS_QUIET_UPPER_CODE 400

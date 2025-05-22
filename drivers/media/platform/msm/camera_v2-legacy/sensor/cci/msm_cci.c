@@ -34,6 +34,8 @@
 
 #ifdef CONFIG_MACH_XIAOMI_C6
 #define CCI_TIMEOUT msecs_to_jiffies(800)
+#elif CONFIG_MACH_XIAOMI_MARKW
+#define CCI_TIMEOUT msecs_to_jiffies(1000)
 #else
 #define CCI_TIMEOUT msecs_to_jiffies(500)
 #endif
